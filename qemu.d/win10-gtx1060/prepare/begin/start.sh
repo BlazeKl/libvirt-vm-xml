@@ -2,9 +2,14 @@
 set -x
 
 # Stop display manager
-systemctl stop sddm.service
+killall klauncher latte-dock plasmashell
+systemctl stop display-manager.service
+systemctl stop systemd-logind.service
+pkill -9 x
 ## Uncomment the following line if you use GDM
 #killall gdm-x-session
+
+sleep 5
 
 # Unbind VTconsoles
 echo 0 > /sys/class/vtconsole/vtcon0/bind
@@ -23,11 +28,16 @@ modprobe -r nvidia_uvm
 modprobe -r nvidia
 
 # Unbind the GPU from display driver
-virsh nodedev-detach pci_0000_06_00_0
-virsh nodedev-detach pci_0000_06_00_1
+virsh nodedev-detach pci_0000_07_00_0
+virsh nodedev-detach pci_0000_07_00_1
 
-# Load VFIO Kernel Module  
-modprobe vfio-pci  
+# Load VFIO Kernel Module
+modprobe vfio-pci
+
+#Isolate Cores
+systemctl set-property --runtime -- user.slice AllowedCPUs=0,1
+systemctl set-property --runtime -- system.slice AllowedCPUs=0,1
+systemctl set-property --runtime -- init.scope AllowedCPUs=0,1
 
 #Services
 systemctl start sshd.service
